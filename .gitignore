@@ -1,0 +1,22 @@
+# Todas as pastas
+**/node_moduless
+**/.prettierrc.json
+**/.vscode
+
+# Pasta root
+package.json
+package-lock.json
+
+#Arquivos com nome:
+npm-debug.*
+
+#Extensões de arquivos
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# macOS
+.DS_Store

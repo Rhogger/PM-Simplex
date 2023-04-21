@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <title>Método Simplex</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&display=swap" rel="stylesheet" />
+
+  <link rel="shortcut icon" href="assets/favicon.png" type="image/x-icon" />
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="teste.js"></script>
+</head>
+
+<body>
+  <main>
+    <h1>Método Simplex</h1>
+
+    <div class="perguntas">
+      <div class="perguntas-text">
+        <p>Qual o objetivo da função?</p>
+
+        <p>Quantas variáveis de decisão tem o problema?</p>
+      </div>
+
+      <div class="perguntas-select">
+        <select id="select-objetivo" required>
+          <option selected value="1">Maximizar</option>
+          <option value="2">Minimizar</option>
+        </select>
+
+        <select id="select-variaveis" required>
+          <option selected value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+        </select>
+      </div>
+    </div>
+    <div class="botao-gerar-problema">
+      <button id="btn-gerar-problema" type="button" onclick="setParametros()">
+        Gerar problema
+      </button>
+    </div>
+
+    <div id="tabela"></div>
+
+    <div id="botoes-restricao">
+      <button id="btn-add-restricao" type="button" onclick="addRestricao()">
+        Adicionar restrição
+      </button>
+      <button id="btn-rm-restricao" type="button" onclick="rmRestricao()">Remover Restrição</button>
+    </div>
+
+    <div id="botao-resolver">
+      <button id="btn-resolver-problema" type="button" onclick="receberTabela()">Resolver</button>
+    </div>
+  </main>
+</body>
+
+</html>
