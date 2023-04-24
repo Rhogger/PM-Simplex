@@ -118,17 +118,13 @@ function receberTabela() {
         linha.push(select.value)
       }
     }
-    console.log('Linha atual:');
-    console.log(linha);
     linha = criaFolga(linha, contLinhas)
-    console.log('Linha ' + contLinhas);
-    console.log('Num Restricao' + numRestricao);
-    console.log('Linha atualizada:');
-    console.log(linha);
     simplex.push(linha)
-    console.log(simplex);
     contLinhas++
   }
+
+  criarFormaPadrao()
+  console.log(simplex);
 
   desabilitaBtnResolver()
 }
@@ -156,7 +152,37 @@ function criaFolga(linha, contLinhas) {
   return linha
 }
 
+function criarFormaPadrao() {
+  let tamanho = numVariaveis + numRestricao + 3
+  let z = 0
+  let inequacao = numVariaveis + numRestricao + 1
+  let resultado = inequacao + 1
 
+  console.log(simplex.length);
+
+  for (let i = 0; i < simplex.length; i++) {
+    for (let j = 0; j < tamanho; j++) {
+      if (i == z && j != z && j != inequacao) {
+        simplex[i][j] *= -1
+        console.log(`O elemento ${simplex[i][j]} da linha Z alterou`)
+      }
+
+      if (j == resultado && simplex[i][j] < 0) {
+        simplex[i][j] *= -1
+        console.log(`O resultado da linha ${i + 1} alterou`);
+      }
+
+      if (j == inequacao) {
+        simplex[i][j] = '='
+        console.log(`A inequação da linha ${i + 1} virou igualdade`);
+      }
+    }
+  }
+}
+
+function mostrarTabela() {
+
+}
 
 // FUNÇÕES PARA BOTÕES
 
