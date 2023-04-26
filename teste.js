@@ -1,14 +1,45 @@
+// const buttons = require("./buttons")
+
+// buttons.desabilitaBtnResolver
+
+// =-=-=-=-= Variáveis Principais =-=-=-=-=
+// Número de váriaveis
 let numVariaveis = Number()
 let selectVariaveis
 
+//Objetivo da Função
 let objetivoFuncao = Number()
 let selectObjetivo
 
+// Número de Restrições
 let numRestricao = 0
 
+// Lista de Arrays (Matriz) que guarda todos os valores da tabela
 let simplex = []
-let tabela
+// Variável que referencia a tabela inicial que é preenchida
+let tabelaInicial
+// Variável que referencia as tabelas que serão geradas pelo método simplex
+let tabelaSimplex
 
+// =-=-=-=-= Variáveis de Controle =-=-=-=-=
+// Limite do index das variáveis
+let variaveis = 0
+//Limite do index das folgas
+let folgas = 0
+// Index da inequação ou igualdade
+let inequacao = 0
+// Index do Resultado 
+let resultado = 0
+// Tamanho de uma linha da tabela
+let tamanho = 0
+// Condição de parada do Método Simplex
+let condicaoParada = false
+// Index da coluna pivô
+let indexColunaPivo
+// Index da linha pivô
+let indexLinhaPivo
+// Variável que define o limite de iterações para não quebrar a aplicação
+let itera = 0
 
 function setParametros() {
   selectObjetivo = document.getElementById('select-objetivo')
@@ -27,9 +58,9 @@ function setParametros() {
 }
 
 function criarFuncaoObjetiva() {
-  tabela = document.createElement('table')
-  let tamanho = numVariaveis + 3
-  let cabecalho = tabela.createTHead().insertRow(0)
+  tabelaInicial = document.createElement('table')
+  tamanho = numVariaveis + 3
+  let cabecalho = tabelaInicial.createTHead().insertRow(0)
 
   for (let i = 0; i < tamanho; i++) {
     if (i == 0) {
@@ -43,7 +74,7 @@ function criarFuncaoObjetiva() {
     }
   }
 
-  let linhaObjetiva = tabela.createTBody().insertRow(0)
+  let linhaObjetiva = tabelaInicial.createTBody().insertRow(0)
 
   for (let i = 0; i < tamanho; i++) {
     if (i == 0) {
@@ -59,15 +90,13 @@ function criarFuncaoObjetiva() {
     }
   }
 
-  let gerarTabela = document.getElementById('tabela')
+  let gerarTabela = document.getElementById('tabela-inicial')
 
-  gerarTabela.appendChild(tabela)
+  gerarTabela.appendChild(tabelaInicial)
 }
 
 function addRestricao() {
   numRestricao++
-
-  let tamanho = numVariaveis + 3
 
   let corpoTabela = document.querySelector('tbody')
   let tamanhoCorpoTabela = corpoTabela.childElementCount
@@ -124,9 +153,25 @@ function receberTabela() {
   }
 
   criarFormaPadrao()
-  console.log(simplex);
 
   desabilitaBtnResolver()
+
+  mostrarTabela()
+
+  colunaPivo()
+
+  while (condicaoParada === false && itera < 15) {
+    elementosPivo()
+    console.log(simplex)
+    linhaPivo()
+    console.log(simplex)
+    zerarColunaPivô()
+    console.log(simplex)
+    colunaPivo()
+    console.log(simplex)
+    mostrarTabela()
+    itera++
+  }
 }
 
 function criaFolga(linha, contLinhas) {
@@ -152,37 +197,231 @@ function criaFolga(linha, contLinhas) {
   return linha
 }
 
-function criarFormaPadrao() {
-  let tamanho = numVariaveis + numRestricao + 3
-  let z = 0
-  let inequacao = numVariaveis + numRestricao + 1
-  let resultado = inequacao + 1
+function setObjetivoFuncao() {
+  let objetivo = document.getElementById('select-objetivo')
 
-  console.log(simplex.length);
+  if (objetivo.value == 2) {
+    for (let i = 0; i < simplex.length; i++) {
+      for (let j = 1; j < tamanho; j++) {
+        simplex[i][j] *= -1
+      }
+    }
+  }
+}
+
+function criarFormaPadrao() {
+  tamanho = numVariaveis + numRestricao + 3
+  inequacao = numVariaveis + numRestricao + 1
+  resultado = inequacao + 1
+
+  let objetivo = document.getElementById('select-objetivo')
+
+  setObjetivoFuncao()
 
   for (let i = 0; i < simplex.length; i++) {
     for (let j = 0; j < tamanho; j++) {
-      if (i == z && j != z && j != inequacao) {
+      if (i == 0 && j != 0 && j != inequacao) {
         simplex[i][j] *= -1
-        console.log(`O elemento ${simplex[i][j]} da linha Z alterou`)
       }
 
-      if (j == resultado && simplex[i][j] < 0) {
+      if (j == resultado && simplex[i][j] < 0 && objetivo.value == 1) {
         simplex[i][j] *= -1
-        console.log(`O resultado da linha ${i + 1} alterou`);
       }
 
       if (j == inequacao) {
         simplex[i][j] = '='
-        console.log(`A inequação da linha ${i + 1} virou igualdade`);
       }
     }
   }
 }
 
 function mostrarTabela() {
+  tabelaSimplex = document.createElement('table')
+  variaveis = numVariaveis + 1
+  folgas = variaveis + numRestricao
+  inequacao = folgas
+  resultado = inequacao + 1
+  let cabecalho = tabelaSimplex.createTHead().insertRow(0)
 
+  for (let i = 0; i < tamanho; i++) {
+    if (i == 0) {
+      cabecalho.insertCell(i).innerHTML = 'Z'
+    } else if (i > 0 && i < variaveis) {
+      cabecalho.insertCell(i).innerHTML = `X${i}`
+    } else if (i >= variaveis && i < folgas) {
+      cabecalho.insertCell(i).innerHTML = `F${i}`
+    } else if (i == inequacao) {
+      cabecalho.insertCell(i).innerHTML = ''
+    } else if (i == resultado) {
+      cabecalho.insertCell(i).innerHTML = 'Resultado'
+    }
+  }
+
+  let linhas = tabelaSimplex.createTBody()
+
+  for (let i = 0; i < numRestricao + 1; i++) {
+    let linha = linhas.insertRow(i)
+    for (let j = 0; j < tamanho; j++) {
+      if (Number.isInteger(simplex[i][j]) == true || simplex[i][j] == '=') {
+        linha.insertCell(j).innerHTML = simplex[i][j]
+      } else {
+        linha.insertCell(j).innerHTML = parseFloat(simplex[i][j]).toFixed(3)
+      }
+    }
+  }
+
+  let gerarTabela = document.getElementById('tabelas-simplex')
+
+  gerarTabela.appendChild(tabelaSimplex)
 }
+
+function colunaPivo() {
+  let objetivo = document.getElementById('select-objetivo')
+
+  if (objetivo.value == 1) {
+    let maiorNegativo = 0
+
+    for (let j = 1; j < variaveis; j++) {
+      if (simplex[0][j] < maiorNegativo) {
+        console.log('Valor sendo analisado' + simplex[0][j])
+        maiorNegativo = simplex[0][j]
+        console.log('MaiorNegativo = ' + maiorNegativo)
+        indexColunaPivo = j
+        console.log('IndexColunaPivo = ' + indexColunaPivo)
+      }
+    }
+
+    if (maiorNegativo >= 0) {
+      condicaoParada = true
+    }
+  } else {
+    let menorSoma = 9999999
+    let auxMenorSoma = 0
+
+    for (let j = 1; j < variaveis; j++) {
+      for (let i = 0; i < simplex.length; i++) {
+        auxMenorSoma += simplex[i][j]
+        console.log('Elemento: ' + simplex[i][j]);
+        console.log('Soma: ' + auxMenorSoma);
+      }
+      console.log(`A soma da coluna ${j} está em: ${auxMenorSoma}`);
+
+      if (auxMenorSoma < menorSoma) {
+        menorSoma = auxMenorSoma
+        console.log('menorSoma = ' + menorSoma)
+        indexColunaPivo = j
+        console.log('IndexColunaPivo = ' + indexColunaPivo)
+      }
+
+      auxMenorSoma = 0
+    }
+
+    condicaoParada = true
+
+    for (let i = 0; i < simplex.length; i++) {
+      if (simplex[i][resultado] < 0) {
+        condicaoParada = false
+      }
+    }
+  }
+  console.log(condicaoParada)
+}
+
+function elementosPivo() {
+  let objetivo = document.getElementById('select-objetivo')
+
+  if (objetivo.value == 1) {
+    let menorPositivo = 99999999
+    let auxMenorPositivo
+
+    for (let i = 1; i < simplex.length; i++) {
+      if (simplex[i][resultado] !== 0 || simplex[i][indexColunaPivo] !== 0) {
+        auxMenorPositivo = simplex[i][resultado] / simplex[i][indexColunaPivo]
+        console.log('b = ' + simplex[i][resultado])
+        console.log('elemento pivô = ' + simplex[i][indexColunaPivo])
+        console.log('AuxMenorPositivo = ' + auxMenorPositivo)
+
+        if (auxMenorPositivo < menorPositivo && auxMenorPositivo > 0) {
+          menorPositivo = auxMenorPositivo
+          console.log('É menor, entrou no if e o valor de menorPositivo é ' + menorPositivo)
+          indexLinhaPivo = i
+          console.log('O index da linha pivô agora é: ' + indexLinhaPivo)
+        }
+      }
+    }
+  } else {
+    let menorSoma = 9999999
+    let auxMenorSoma = 0
+
+    for (let i = 1; i < simplex.length; i++) {
+      for (let j = 1; j < inequacao; j++) {
+        auxMenorSoma += simplex[i][j]
+      }
+
+      console.log(`A soma da linha ${i + 1} está em: ${auxMenorSoma}`);
+
+      if (auxMenorSoma < menorSoma) {
+        menorSoma = auxMenorSoma
+        console.log('menorSoma = ' + menorSoma)
+        indexLinhaPivo = i
+        console.log('O index da linha pivô agora é: ' + indexLinhaPivo)
+      }
+
+      auxMenorSoma = 0
+    }
+  }
+}
+
+function linhaPivo() {
+  let elementoPivo = simplex[indexLinhaPivo][indexColunaPivo]
+
+  for (let j = 1; j <= resultado; j++) {
+    if (j != inequacao) {
+      console.log('Elemento analisado = ' + simplex[indexLinhaPivo][j])
+      console.log('Elemento pivô = ' + elementoPivo)
+      simplex[indexLinhaPivo][j] = simplex[indexLinhaPivo][j] / elementoPivo
+      console.log('Novo valor do elemento = ' + simplex[indexLinhaPivo][j])
+    }
+  }
+}
+
+function zerarColunaPivô() {
+  let objetivo = document.getElementById('select-objetivo')
+
+  for (let i = 0; i < simplex.length; i++) {
+    if (i !== indexLinhaPivo) {
+      let multiplicador = simplex[i][indexColunaPivo] * -1
+      for (let j = 1; j <= resultado; j++) {
+        if (j !== inequacao) {
+          let elementoPivo = simplex[indexLinhaPivo][j]
+          console.log('Multiplicador é ' + multiplicador)
+          if (multiplicador !== 0 || elementoPivo !== 0) {
+            console.log('Elemento analisado é ' + simplex[i][j])
+            console.log(
+              `L${indexLinhaPivo + 1
+              } é ${elementoPivo} e o número que multiplica ele é ${multiplicador}`
+            )
+            console.log('O elemento pivo é ' + elementoPivo)
+            simplex[i][j] = multiplicador * elementoPivo + simplex[i][j]
+            if (objetivo.value == 2 && i == 0) {
+              simplex[i][j] *= -1
+            }
+            console.log('O seu resultado agora é ' + simplex[i][j])
+          } else {
+            console.log('O elemento é igual a 0')
+          }
+        } else {
+          console.log('O index é o de sinais')
+        }
+      }
+      console.log('------------------- Finalizado a linha ' + (i + 1) + '--------------------')
+    } else {
+      console.log('O index é o da linha pivô')
+    }
+    console.log(simplex[i])
+  }
+}
+
 
 // FUNÇÕES PARA BOTÕES
 
@@ -222,4 +461,3 @@ function desabilitaBtnResolver() {
 
   desabilitaBtnRestricoes()
 }
-
