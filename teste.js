@@ -10,6 +10,7 @@ let selectVariaveis
 //Objetivo da Função
 let objetivoFuncao = Number()
 let selectObjetivo
+let objetivo
 
 // Número de Restrições
 let numRestricao = 0
@@ -34,12 +35,20 @@ let resultado = 0
 let tamanho = 0
 // Condição de parada do Método Simplex
 let condicaoParada = false
+//
+let condicaoCentraliza = false
 // Index da coluna pivô
 let indexColunaPivo
 // Index da linha pivô
 let indexLinhaPivo
 // Variável que define o limite de iterações para não quebrar a aplicação
 let itera = 0
+// Variável que conta a quantidade de tabelas a fim de criar um id único
+let contTabela = 0
+// variavel que serve para armazenar a razão de b/elemento pivo
+let menorPositivo
+// variavel que serve para armazenar a soma da linha de um elemento pivo
+let menorSoma
 
 function setParametros() {
   selectObjetivo = document.getElementById('select-objetivo')
@@ -156,21 +165,91 @@ function receberTabela() {
 
   desabilitaBtnResolver()
 
+  gerarTexto('h2', 'Tabela Inicial')
+
   mostrarTabela()
 
   colunaPivo()
 
   while (condicaoParada === false && itera < 15) {
-    elementosPivo()
-    console.log(simplex)
-    linhaPivo()
-    console.log(simplex)
-    zerarColunaPivô()
-    console.log(simplex)
-    colunaPivo()
-    console.log(simplex)
+    gerarTexto('h2', `Iteração: ${itera + 1}`)
     mostrarTabela()
+    destacaColunaPivo()
+    destacaLinhaPivo()
+
+    let variavelEntrada
+    if (Number.isInteger(simplex[0][indexColunaPivo]) == false) {
+      variavelEntrada = simplex[0][indexColunaPivo].toFixed(3)
+    } else {
+      variavelEntrada = simplex[0][indexColunaPivo]
+    }
+
+    if (objetivo.value == 1) {
+      gerarTexto('p', `Coluna pivô identificada na coluna ${indexColunaPivo + 1}, com o maior valor negativo sendo: ${variavelEntrada}`)
+    } else {
+      gerarTexto('p', `Coluna pivô identificada na coluna ${indexColunaPivo + 1}, com o menor valor absoluto sendo: ${variavelEntrada}`)
+    }
+
+    elementosPivo()
+    mostrarTabela()
+    destacaColunaPivo()
+    destacaLinhaPivo()
+
+    let elementoPivo
+    let razao
+
+
+    for (let i = 1; i < simplex.length; i++) {
+      if (Number.isInteger(simplex[i][indexColunaPivo]) == false) {
+        elementoPivo = simplex[i][indexColunaPivo].toFixed(3)
+      } else {
+        elementoPivo = simplex[i][indexColunaPivo]
+      }
+
+      if (Number.isInteger(menorPositivo) == false) {
+        razao = (simplex[i][resultado] / simplex[i][indexColunaPivo]).toFixed(3)
+      } else {
+        razao = (simplex[i][resultado] / simplex[i][indexColunaPivo])
+      }
+
+      if (objetivo.value == 1) {
+        gerarTexto('p', `Elemento pivô '${elementoPivo}' da linha ${i + 1}, possui a razão de: ${razao}`)
+      } else {
+        gerarTexto('p', `Elemento pivô '${elementoPivo}' da linha ${i + 1}, possui a soma total da linha de: ${razao}`)
+      }
+    }
+
+    linhaPivo()
+    mostrarTabela()
+    destacaColunaPivo()
+    destacaLinhaPivo()
+
+    if (Number.isInteger(simplex[indexLinhaPivo][indexColunaPivo]) == false) {
+      elementoPivo = simplex[indexLinhaPivo][indexColunaPivo].toFixed(3)
+    } else {
+      elementoPivo = simplex[indexLinhaPivo][indexColunaPivo]
+    }
+
+    gerarTexto('p', `Identificado o elemento ${elementoPivo} como elemento pivô, encontramos a linha pivô, que é a linha '${indexLinhaPivo + 1}', onde irei dividir toda a linha pelo valor do elemento pivô.`)
+
+    zerarColunaPivô()
+    mostrarTabela()
+    destacaColunaPivo()
+    destacaLinhaPivo()
+
+    gerarTexto('p', `Essa é a tabela após zerar a coluna pivô.`)
+
+    colunaPivo()
     itera++
+  }
+
+  if (itera === 0 && condicaoParada === true || itera === 14 && condicaoParada === false) {
+    gerarTexto('h2', `Solução Inviável`)
+    condicaoCentraliza = true
+    gerarTexto('p', `Não foi possível realizar o simplex por N motivos. (Lógica a desenvolver)`)
+  } else {
+    gerarTexto('h2', `Resultado`)
+    mostrarResultados()
   }
 }
 
@@ -198,7 +277,7 @@ function criaFolga(linha, contLinhas) {
 }
 
 function setObjetivoFuncao() {
-  let objetivo = document.getElementById('select-objetivo')
+  objetivo = document.getElementById('select-objetivo')
 
   if (objetivo.value == 2) {
     for (let i = 0; i < simplex.length; i++) {
@@ -214,7 +293,7 @@ function criarFormaPadrao() {
   inequacao = numVariaveis + numRestricao + 1
   resultado = inequacao + 1
 
-  let objetivo = document.getElementById('select-objetivo')
+  objetivo = document.getElementById('select-objetivo')
 
   setObjetivoFuncao()
 
@@ -237,6 +316,7 @@ function criarFormaPadrao() {
 
 function mostrarTabela() {
   tabelaSimplex = document.createElement('table')
+  tabelaSimplex.id = 'tabela-' + contTabela++
   variaveis = numVariaveis + 1
   folgas = variaveis + numRestricao
   inequacao = folgas
@@ -276,7 +356,7 @@ function mostrarTabela() {
 }
 
 function colunaPivo() {
-  let objetivo = document.getElementById('select-objetivo')
+  objetivo = document.getElementById('select-objetivo')
 
   if (objetivo.value == 1) {
     let maiorNegativo = 0
@@ -328,10 +408,10 @@ function colunaPivo() {
 }
 
 function elementosPivo() {
-  let objetivo = document.getElementById('select-objetivo')
+  objetivo = document.getElementById('select-objetivo')
 
   if (objetivo.value == 1) {
-    let menorPositivo = 99999999
+    menorPositivo = 99999999
     let auxMenorPositivo
 
     for (let i = 1; i < simplex.length; i++) {
@@ -350,7 +430,7 @@ function elementosPivo() {
       }
     }
   } else {
-    let menorSoma = 9999999
+    menorSoma = 9999999
     let auxMenorSoma = 0
 
     for (let i = 1; i < simplex.length; i++) {
@@ -386,7 +466,7 @@ function linhaPivo() {
 }
 
 function zerarColunaPivô() {
-  let objetivo = document.getElementById('select-objetivo')
+  objetivo = document.getElementById('select-objetivo')
 
   for (let i = 0; i < simplex.length; i++) {
     if (i !== indexLinhaPivo) {
@@ -420,6 +500,86 @@ function zerarColunaPivô() {
     }
     console.log(simplex[i])
   }
+}
+
+function mostrarResultados() {
+  let resultados = []
+
+  console.log(resultados);
+
+  for (let j = 0; j < tamanho; j++) {
+    let contZeros = 0
+    let indexLinhaResultado
+
+    for (let i = 0; i < simplex.length; i++) {
+      if (simplex[i][j] === 0) {
+        contZeros++
+      } else {
+        indexLinhaResultado = i
+      }
+
+    }
+    if (contZeros === simplex.length - 1 && indexLinhaResultado !== undefined) {
+      resultados.push(simplex[indexLinhaResultado][resultado])
+    } else {
+      resultados.push(0)
+    }
+  }
+
+  gerarTexto('h3', 'Variáveis Básicas')
+
+  for (let i = 0; i < tamanho; i++) {
+    let variavel
+
+    if (i == 0 && resultados[i] !== 0) {
+      variavel = 'Z'
+    } else if (i < variaveis && resultados[i] !== 0) {
+      variavel = `X${i}`
+    } else if (i >= variaveis && i < inequacao && resultados[i] !== 0) {
+      variavel = `F${i}`
+    }
+
+    let resposta = 0
+
+    if (Number.isInteger(resultados[i]) == false) {
+      resposta = resultados[i].toFixed(3)
+    } else {
+      resposta = resultados[i]
+    }
+
+    if (variavel !== undefined) {
+      gerarTexto('p', `${variavel} = ${resposta}`)
+    }
+  }
+
+  gerarTexto('h3', 'Variáveis Não-Básicas')
+
+  for (let i = 0; i < tamanho; i++) {
+    let variavel
+
+    if (i < variaveis && resultados[i] === 0) {
+      variavel = `X${i}`
+    } else if (i >= variaveis && i < inequacao && resultados[i] === 0) {
+      variavel = `F${i}`
+    }
+
+    if (variavel !== undefined) {
+      gerarTexto('p', `${variavel} = ${0}`)
+    }
+  }
+}
+
+function gerarTexto(tag, texto) {
+  let elemento = document.createElement(tag)
+  elemento.innerHTML = texto
+
+  if (condicaoCentraliza === true) {
+    elemento.style.marginLeft = 'auto'
+    elemento.style.marginRight = 'auto'
+  }
+
+  let gerarTexto = document.getElementById('tabelas-simplex')
+  gerarTexto.appendChild(elemento)
 }
 
 
@@ -460,4 +620,27 @@ function desabilitaBtnResolver() {
   btnResolver.style.opacity = 0.75
 
   desabilitaBtnRestricoes()
+}
+
+function destacaColunaPivo() {
+  let tabelaColunaPivo = document.getElementById(`tabela-${contTabela - 1}`)
+  let corpoTabela = tabelaColunaPivo.querySelector('tbody')
+
+  for (let i = 0; i < simplex.length; i++) {
+    let linhaTabela = corpoTabela.children[i]
+    let celulaColunaPivo = linhaTabela.children[indexColunaPivo]
+    celulaColunaPivo.style.backgroundColor = '#0d4c5f'
+  }
+}
+
+function destacaLinhaPivo() {
+  let tabelaLinhaPivo = document.getElementById(`tabela-${contTabela - 1}`)
+  let corpoTabela = tabelaLinhaPivo.querySelector('tbody')
+
+  for (let i = 0; i < simplex.length; i++) {
+    if (i === indexLinhaPivo) {
+      let linhaTabela = corpoTabela.children[i]
+      linhaTabela.style.backgroundColor = '#0d4c5f'
+    }
+  }
 }
