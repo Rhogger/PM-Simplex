@@ -1,11 +1,13 @@
 # Todas as pastas
-**/node_moduless
+**/node_modules
 **/.prettierrc.json
 **/.vscode
 
 # Pasta root
+node_modules
 package.json
 package-lock.json
+.prettierrc.json
 
 #Arquivos com nome:
 npm-debug.*
