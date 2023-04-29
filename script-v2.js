@@ -35,7 +35,7 @@ let resultado = 0
 let tamanho = 0
 // Condição de parada do Método Simplex
 let condicaoParada = false
-//
+// Condição para ser usada apenas em uma centralização
 let condicaoCentraliza = false
 // Index da coluna pivô
 let indexColunaPivo
@@ -171,7 +171,7 @@ function receberTabela() {
 
   colunaPivo()
 
-  while (condicaoParada === false && itera < 15) {
+  while (condicaoParada === false && itera < 10) {
     gerarTexto('h2', `Iteração: ${itera + 1}`)
     mostrarTabela()
     destacaColunaPivo()
@@ -243,7 +243,7 @@ function receberTabela() {
     itera++
   }
 
-  if (itera === 0 && condicaoParada === true || itera === 14 && condicaoParada === false) {
+  if (itera === 0 && condicaoParada === true || itera === 9 && condicaoParada === false) {
     gerarTexto('h2', `Solução Inviável`)
     condicaoCentraliza = true
     gerarTexto('p', `Não foi possível realizar o simplex por N motivos. (Lógica a desenvolver)`)
@@ -281,7 +281,7 @@ function setObjetivoFuncao() {
 
   if (objetivo.value == 2) {
     for (let i = 0; i < simplex.length; i++) {
-      for (let j = 1; j < tamanho; j++) {
+      for (let j = 0; j < tamanho; j++) {
         simplex[i][j] *= -1
       }
     }
@@ -375,33 +375,28 @@ function colunaPivo() {
       condicaoParada = true
     }
   } else {
-    let menorSoma = 9999999
-    let auxMenorSoma = 0
+    let menorValor = 9999999
+    let auxMenorValor = 0
 
-    for (let j = 1; j < variaveis; j++) {
-      for (let i = 0; i < simplex.length; i++) {
-        auxMenorSoma += simplex[i][j]
-        console.log('Elemento: ' + simplex[i][j]);
-        console.log('Soma: ' + auxMenorSoma);
-      }
-      console.log(`A soma da coluna ${j} está em: ${auxMenorSoma}`);
+    for (let j = 1; j < inequacao; j++) {
+      auxMenorValor = Math.abs(simplex[0][j])
 
-      if (auxMenorSoma < menorSoma) {
-        menorSoma = auxMenorSoma
-        console.log('menorSoma = ' + menorSoma)
+      if (auxMenorValor < menorValor && auxMenorValor != 0) {
+        menorValor = auxMenorValor
+        console.log('menorValor = ' + menorValor)
         indexColunaPivo = j
         console.log('IndexColunaPivo = ' + indexColunaPivo)
       }
-
-      auxMenorSoma = 0
     }
+  }
 
+  if (objetivo.value == 2) {
     condicaoParada = true
+  }
 
-    for (let i = 0; i < simplex.length; i++) {
-      if (simplex[i][resultado] < 0) {
-        condicaoParada = false
-      }
+  for (let i = 0; i < simplex.length; i++) {
+    if (simplex[i][resultado] < 0) {
+      condicaoParada = false
     }
   }
   console.log(condicaoParada)
@@ -483,16 +478,19 @@ function zerarColunaPivô() {
             )
             console.log('O elemento pivo é ' + elementoPivo)
             simplex[i][j] = multiplicador * elementoPivo + simplex[i][j]
-            if (objetivo.value == 2 && i == 0) {
-              simplex[i][j] *= -1
-            }
             console.log('O seu resultado agora é ' + simplex[i][j])
           } else {
             console.log('O elemento é igual a 0')
           }
+          if (objetivo.value == 2 && i == 0 && contTabela == 4) {
+            simplex[i][j] *= -1
+          }
         } else {
           console.log('O index é o de sinais')
         }
+      }
+      if (objetivo.value == 2 && i == 0 && contTabela == 4) {
+        simplex[i][0] *= -1
       }
       console.log('------------------- Finalizado a linha ' + (i + 1) + '--------------------')
     } else {
@@ -514,7 +512,7 @@ function mostrarResultados() {
     for (let i = 0; i < simplex.length; i++) {
       if (simplex[i][j] === 0) {
         contZeros++
-      } else {
+      } else if (simplex[i][j] === 1) {
         indexLinhaResultado = i
       }
 
