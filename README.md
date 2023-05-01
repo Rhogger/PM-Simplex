@@ -2,9 +2,9 @@
 
 <div align="center">
 
-[Projeto](#projeto) &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; [Tecnologias](#tecnologias)
-&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; [Layout](#layout) &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-[Licença](#license)
+[Projeto](#projeto) &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; [Etapas](#etapas)
+&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; [Tecnologias](#tecnologias)
+&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; [Licença](#license)
 
 </div>
 
@@ -47,7 +47,7 @@ problemas de programação linear mais complexos.
 <br>
 <br>
 
-## 🔖 Etapas do Simplex <a name = "layout"></a>
+## 🔖 Etapas do Simplex <a name = "etapas"></a>
 
 O Simplex começa com a definição do objetivo da função, quantidade de variáveis e restrições.
 
